@@ -1,34 +1,22 @@
 import { useEffect, useState } from "react";
+import Maininterface from "./Maininterface";
+import {Logo, Search, NavBar} from "./UI"
 //import PropTypes from "prop-types";
 
 const tempacc = [
-    ["kfzhu", "12345"],
+    ["kfzhu1229@gmail.com", "12345"],
     ["ek", "23465"]
 ]
 
-function Logo(){
-    return (<div className="logo2">
-    <span role="img">🗒️</span>
-    <h1>ZipURL</h1>
-  </div>)
-  }
 
-function Search({query, setQuery, placeholder=""}){
-    return(
-    <input
-            className="search2"
-            type="text"
-            placeholder={placeholder}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-   )
-  }
 
-function Login({isOpen, setIsOpen, setForgotpw, form, setForm, setPage, accounts}){
+function Login({isOpen, setIsOpen, form, setForm, setPage, accounts}){
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [wrongpw, setWrongpw] = useState(false);
+    //return token
+    const [r, setr] = useState(null);
+    const API = "localhost:8080/login"
     function handleSubmit(e){
         e.preventDefault();
         if (!username) return;
@@ -40,6 +28,15 @@ function Login({isOpen, setIsOpen, setForgotpw, form, setForm, setPage, accounts
     }
     useEffect(function(){
     async function ue(){
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({email: form[0], password: form[1]})
+      };
+      fetch({API}, requestOptions)
+          .then(response => response.json())
+          .then(data => setr(data));
+      console.log(JSON.stringify({email: form[0], password: form[1]}));
       setWrongpw(form[0] !== "" && noaccmatch(form));
     }
     ue();
@@ -55,7 +52,7 @@ function Login({isOpen, setIsOpen, setForgotpw, form, setForm, setPage, accounts
         <Logo />
         <h3>&nbsp;</h3>
         <Search query={username} setQuery={setUsername} placeholder="E-Mail"/>
-        <Search query={password} setQuery={setPassword} placeholder="Password"/>
+        <Search query={password} setQuery={setPassword} placeholder="Password" type="password" />
         <button className="btn-link"
             onClick={() => setPage(3)}>Forgot Password?</button>
         <h3>{wrongpw ? "Mismatched username & password" : ""} &nbsp;</h3>
@@ -68,7 +65,7 @@ function Login({isOpen, setIsOpen, setForgotpw, form, setForm, setPage, accounts
     )
 }
 
-const specialChar = ["¬", "\`", "!", "@", "£", "#", "%", "&", "-", "_", 
+const specialChar = ["¬", "`", "!", "@", "£", "#", "%", "&", "-", "_", 
 "=", ":", "~", "\"", "'", ";", ","]
 function PWRules(password){
   console.log(specialChar.filter((c) => (password.search(c) !== -1)));
@@ -79,10 +76,13 @@ function PWRules(password){
   );
 }
 
-function Signup({isOpen, setIsOpen, form, setForm, setPage, accounts, setAccounts}){
+function Signup({isOpen, setIsOpen, form, setForm, setPage, accounts, setAccounts, reset=false}){
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [wrongpw, setWrongpw] = useState(0);
+  //return token
+  const [r, setr] = useState(null);
+  const API = "localhost:8080/register"
   function handleSubmit(e){
       e.preventDefault();
       if (!username) return;
@@ -97,15 +97,32 @@ function Signup({isOpen, setIsOpen, form, setForm, setPage, accounts, setAccount
   useEffect(function(){
   async function ue(){
     if (form[0] !== ""){
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: {email: form[0], password: form[1]}
+      };
+      fetch({API}, requestOptions)
+          .then(response => response.json())
+          .then(data => setr(data));
+      console.log({email: form[0], password: form[1]});
+      
       if (noaccmatch(form)){
           
           if (!PWRules(form[1])) setWrongpw(1);
           else{ setWrongpw(0);
-            if (form[0].search("@") === -1 || form[0].search(".com") === -1) setWrongpw(3);
+            if (form[0].search("@") === -1 || form[0].search(".c") === -1) setWrongpw(3);
             else setAccounts([...accounts, form]);
           }
       }
-      else if (!acccmatch(form)) setWrongpw(2);
+      else if (!acccmatch(form)) {
+        setWrongpw(2);
+        if (reset){
+          const tmpa = accounts.filter((u) => (u[0]!==form[0]))
+          setAccounts([...tmpa, form]);
+        }
+      }
+      //if (r.status !== undefined) setWrongpw(2);
     }
   }
   ue();
@@ -119,30 +136,70 @@ function Signup({isOpen, setIsOpen, form, setForm, setPage, accounts, setAccount
           {isOpen ? "x" : "+"}
       </button>
       <Logo />
-      <h1>Sign up below:</h1>
+      <h1>{reset? "To reset, enter your existing e-mail and new password" : "Sign up below:"}</h1>
       <Search query={username} setQuery={setUsername} placeholder="E-Mail"/>
-      <Search query={password} setQuery={setPassword} placeholder="Password"/>
+      <Search type="password" query={password} setQuery={setPassword} placeholder="Password"/>
       <h3>{wrongpw ? (wrongpw === 1? "Weak password" : (wrongpw === 2? "Account already exists" : "Invalid e-mail address"))
-          : ""} &nbsp;</h3>
+          : (reset? "Success!" : "")} &nbsp;</h3>
       <h3>{//accounts.filter((u) => (u[0]==form[0] && u[1]==form[1])).length
       }</h3>
       <button className="login-btn">
-          Sign up for Free
+          {reset? "Reset" : "Sign up for Free"}
       </button>
     </form>
   )
 }
 
-function NavBar({children}){
-  
-  return (
-    <nav className="nav-bar">
-        <Logo />
-        
-        {children}
-      </nav>
+function Forgotpw({isOpen, setIsOpen, form, setForm, setPage, accounts, setAccounts}){
+  const [username, setUsername] = useState("");
+  const [wrongpw, setWrongpw] = useState(0);
+  function handleSubmit(e){
+      e.preventDefault();
+      if (!username) return;
+      setForm([username, "reset"]);
+    }
+  function noaccmatch(form){
+      return (accounts.filter((u) => (u[0]===form[0])).length===0)
+  }
+  useEffect(function(){
+  async function ue(){
+    if (form[0] !== ""){
+      if (noaccmatch(form)){
+          setWrongpw(3);
+      }
+      else {
+        setWrongpw(2);
+        //const tmpa = accounts.filter((u) => (u[0]!==form[0]))
+        //setAccounts([...tmpa, form]);
+      }
+    }
+  }
+  ue();
+  }, [form])
+
+  return(
+  <form className="nav-bar2" onSubmit={handleSubmit}>
+      <button
+          className="btn-toggle2"
+          onClick={() => setPage(0)}
+      >
+          {isOpen ? "x" : "+"}
+      </button>
+      <Logo />
+      <h1>Forgot Password? Please enter your e-mail address:</h1>
+      <Search query={username} setQuery={setUsername} placeholder="E-Mail"/>
+      <h3>{wrongpw ? (wrongpw === 1? "" : (wrongpw === 2? "A password reset e-mail has been successfully sent!" : "An account associated with this e-mail address does not exist!"))
+          : ""} &nbsp;</h3>
+      <h3>{//accounts.filter((u) => (u[0]==form[0] && u[1]==form[1])).length
+      }</h3>
+      <button className="login-btn">
+          Reset Password
+      </button>
+    </form>
   )
 }
+
+
 
 function Main({setPage}){
   return (
@@ -171,18 +228,34 @@ function Main({setPage}){
   )
 }
 
+function POST({API, children}) {
+  const [r, setr] = useState(null);
+  useEffect(() => {
+    // POST request using fetch inside useEffect React hook
+    const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(children)
+    };
+    fetch({API}, requestOptions)
+        .then(response => response.json())
+        .then(data => setr(data));
 
+// empty dependency array means this effect will only run once (like componentDidMount in classes)
+}, [API, children]);
+return (r)
+}
 
 export default function Tmp(){
     const [accounts, setAccounts] = useState(tempacc);
     const [isOpen, setIsOpen] = useState(true);
-    const [forgotpw, setForgotpw] = useState(false);
+    //const [forgotpw, setForgotpw] = useState(false);
     const [form, setForm] = useState(["", ""]);
     const [page, setPage] = useState(0);
     console.log(accounts)
     useEffect(function(){
       async function ue(){
-        setForm(["", ""]);
+        if (page !== 4) setForm(["", ""]);
       }
       ue();
       }, [page])
@@ -192,14 +265,15 @@ export default function Tmp(){
       if (page === 0) return (<Main setPage={setPage}/>)
       //Login
       if (page === 1) return (<Login isOpen={isOpen} setIsOpen={setIsOpen} 
-        setForgotpw={setForgotpw} form={form} setForm={setForm} setPage={setPage} accounts={accounts}/>)
+        form={form} setForm={setForm} setPage={setPage} accounts={accounts}/>)
       //Signup
       if (page === 2) return (<Signup isOpen={isOpen} setIsOpen={setIsOpen}
          form={form} setForm={setForm} setPage={setPage} accounts={accounts} setAccounts={setAccounts}/>)
       //Forgot pw
-      if (page === 3) return (<div>Forgot Password</div>)
+      if (page === 3) return (<Forgotpw isOpen={isOpen} setIsOpen={setIsOpen}
+        form={form} setForm={setForm} setPage={setPage} accounts={accounts} setAccounts={setAccounts}/>)
       //Interface
-      if (page === 4) return (<div>Main interface</div>)
+      if (page === 4) return (<Maininterface form={form} setPage={setPage}/>)
     }
     return(<>
     {//<Login isOpen={isOpen} setIsOpen={setIsOpen} setForgotpw={setForgotpw} form={form} setForm={setForm}/>
