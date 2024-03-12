@@ -481,6 +481,20 @@ EMPTY STAR
   transition: all 0.3s;
 }
 
+.navbar-btn-link{
+  background-color: var(--color-primary);
+  align-items: center;
+  color: var(--color-text);
+  border: none;
+  border-radius: 10rem;
+  font-size: 1.4rem;
+  width: 75%;
+  padding: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
 .btn-toggle2 {
   position: relative;
   align-items: right;
