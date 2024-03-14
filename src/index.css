@@ -55,6 +55,21 @@ body {
   margin-left: auto;
   margin-right: 10px;
 }
+.nav-bar-grid2 {
+  
+  display: flex;
+  justify-content: flex-start;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  width: 60rem;
+  height: 7.2rem;
+  padding: 0 0rem;
+  column-gap: 2%;
+  background-color: var(--color-primary);
+  border-radius: 0.9rem;
+  margin-left: auto;
+  margin-right: auto;
+}
 .main-body{
   margin-top: 10rem;
   display:block;
@@ -170,7 +185,7 @@ body {
   cursor: pointer;
   z-index: 999;
 }
-
+*/
 .list {
   list-style: none;
   padding: 0.8rem 0;
@@ -184,7 +199,7 @@ body {
 .list li {
   position: relative;
   display: grid;
-  grid-template-columns: 4rem 1fr;
+  grid-template-columns: 12rem 1fr;
   grid-template-rows: auto auto;
   column-gap: 2.4rem;
   font-size: 1.6rem;
@@ -210,6 +225,7 @@ body {
 
 .list h3 {
   font-size: 1.8rem;
+  color: var(--color-text);
 }
 
 .list div {
@@ -223,7 +239,7 @@ body {
   align-items: center;
   gap: 0.8rem;
 }
-
+/*
 .btn-delete {
   position: absolute;
   right: 2.4rem;
@@ -449,7 +465,7 @@ EMPTY STAR
   margin-bottom: auto;
 }
 
-.nav-bar2 h3 {
+h3 {
   color: var(--color-red-dark);
 }
 
@@ -545,4 +561,16 @@ EMPTY STAR
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s;
+}
+
+select{
+  background-color: var(--color-primary-light);
+  color: var(--color-text);
+  font-family: inherit;
+  border: none;
+  border-radius: 10rem;
+  padding: 0.2rem 3.2rem;
+  font-weight: 700;
+  font-size: 1.8rem;
+  cursor: pointer;
 }
