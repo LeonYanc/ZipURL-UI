@@ -7,21 +7,25 @@ const tempacc = [
     ["kfzhu1229@gmail.com", "12345"],
     ["ek", "23465"]
 ]
+//test mode: uses front end stored account and link data
+const test = true;
+//default page: the page the UI will land on upon launch
+//0: Main; 1: Login; 2: Signup; 3: Forgot pw; 4: Main Interface
+const defaultpage = 4;
 
 
-
-function Login({isOpen, setIsOpen, form, setForm, setPage, accounts}){
+function Login({isOpen, setIsOpen, form, setForm, setPage, accounts, r, setr}){
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [wrongpw, setWrongpw] = useState(false);
     //return token
-    const [r, setr] = useState(null);
+    //const [r, setr] = useState(null);
     const API = "localhost:8080/login"
     function handleSubmit(e){
         e.preventDefault();
         if (!username) return;
         setForm([username, password]);
-        if (!noaccmatch([username, password])) setPage(4);
+        //if (!noaccmatch([username, password])) setPage(4);
       }
     function noaccmatch(form){
         return (accounts.filter((u) => (u[0]===form[0] && u[1]===form[1])).length===0)
@@ -37,7 +41,13 @@ function Login({isOpen, setIsOpen, form, setForm, setPage, accounts}){
           .then(response => response.json())
           .then(data => setr(data));
       console.log(JSON.stringify({email: form[0], password: form[1]}));
-      setWrongpw(form[0] !== "" && noaccmatch(form));
+      if (test) {
+        setWrongpw(form[0] !== "" && noaccmatch(form));
+        if (!noaccmatch([username, password])) setPage(4);
+      }else{ 
+        setWrongpw(form[0] !== "" && r.status);
+        if (r && !r.status) setPage(4);
+      }
     }
     ue();
     }, [form])
@@ -76,12 +86,12 @@ function PWRules(password){
   );
 }
 
-function Signup({isOpen, setIsOpen, form, setForm, setPage, accounts, setAccounts, reset=false}){
+function Signup({isOpen, setIsOpen, form, setForm, setPage, accounts, setAccounts, reset=false, setr}){
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [wrongpw, setWrongpw] = useState(0);
   //return token
-  const [r, setr] = useState(null);
+  const [rr, setrr] = useState("");
   const API = "localhost:8080/register"
   function handleSubmit(e){
       e.preventDefault();
@@ -102,9 +112,9 @@ function Signup({isOpen, setIsOpen, form, setForm, setPage, accounts, setAccount
         headers: { 'Content-Type': 'application/json' },
         body: {email: form[0], password: form[1]}
       };
-      fetch({API}, requestOptions)
-          .then(response => response.json())
-          .then(data => setr(data));
+      //fetch({API}, requestOptions)
+      //    .then(response => response.json())
+      //    .then(data => setrr(data));
       console.log({email: form[0], password: form[1]});
       
       if (noaccmatch(form)){
@@ -112,7 +122,12 @@ function Signup({isOpen, setIsOpen, form, setForm, setPage, accounts, setAccount
           if (!PWRules(form[1])) setWrongpw(1);
           else{ setWrongpw(0);
             if (form[0].search("@") === -1 || form[0].search(".c") === -1) setWrongpw(3);
-            else setAccounts([...accounts, form]);
+            else if (test) setAccounts([...accounts, form]);
+            else fetch({API}, requestOptions)
+            .then(response => response.json())
+            .then(data => setrr(data));
+            
+            if (rr.status) setWrongpw(2);
           }
       }
       else if (!acccmatch(form)) {
@@ -227,14 +242,14 @@ function Main({setPage}){
     </>
   )
 }
-
+/*
 function POST({API, children}) {
   const [r, setr] = useState(null);
   useEffect(() => {
     // POST request using fetch inside useEffect React hook
     const requestOptions = {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer {my-token}' },
         body: JSON.stringify(children)
     };
     fetch({API}, requestOptions)
@@ -244,14 +259,15 @@ function POST({API, children}) {
 // empty dependency array means this effect will only run once (like componentDidMount in classes)
 }, [API, children]);
 return (r)
-}
+}*/
 
 export default function Tmp(){
     const [accounts, setAccounts] = useState(tempacc);
     const [isOpen, setIsOpen] = useState(true);
     //const [forgotpw, setForgotpw] = useState(false);
     const [form, setForm] = useState(["", ""]);
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState(defaultpage);
+    const [r, setr] = useState(""); //return JWT
     console.log(accounts)
     useEffect(function(){
       async function ue(){
@@ -265,15 +281,15 @@ export default function Tmp(){
       if (page === 0) return (<Main setPage={setPage}/>)
       //Login
       if (page === 1) return (<Login isOpen={isOpen} setIsOpen={setIsOpen} 
-        form={form} setForm={setForm} setPage={setPage} accounts={accounts}/>)
+        form={form} setForm={setForm} setPage={setPage} accounts={accounts} r={r} setr={setr}/>)
       //Signup
       if (page === 2) return (<Signup isOpen={isOpen} setIsOpen={setIsOpen}
-         form={form} setForm={setForm} setPage={setPage} accounts={accounts} setAccounts={setAccounts}/>)
+         form={form} setForm={setForm} setPage={setPage} accounts={accounts} setAccounts={setAccounts} setr={setr}/>)
       //Forgot pw
       if (page === 3) return (<Forgotpw isOpen={isOpen} setIsOpen={setIsOpen}
         form={form} setForm={setForm} setPage={setPage} accounts={accounts} setAccounts={setAccounts}/>)
       //Interface
-      if (page === 4) return (<Maininterface form={form} setPage={setPage}/>)
+      if (page === 4) return (<Maininterface form={form} setPage={setPage} r={r} test={test}/>)
     }
     return(<>
     {//<Login isOpen={isOpen} setIsOpen={setIsOpen} setForgotpw={setForgotpw} form={form} setForm={setForm}/>
